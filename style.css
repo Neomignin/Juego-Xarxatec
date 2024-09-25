@@ -5,11 +5,12 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-    background-color: #f0f0f0;
+    background-color: black;
+    color: white;
 }
 
 #game-container {
-    background-color: white;
+    background-color: #222;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -64,7 +65,7 @@ body {
 }
 
 #player-stats {
-    background-color: #f0f0f0;
+    background-color: #00000000;
     padding: 10px;
     border-radius: 5px;
     margin-bottom: 10px;

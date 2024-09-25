@@ -7,9 +7,12 @@ const player = {
     maxMp: 50,
     attack: 25,
     defense: 50,
-    skill: "Estocada",
-    skillDamage: 25,
-    skillManaCost: 15,
+    skills: [
+        { name: "Multislash", damage: 0.9, target: "all", manaCost: 20 },
+        { name: "Estocada múltiple", damage: 0.5, minHits: 3, maxHits: 5, manaCost: 20 },
+        { name: "Estocada", damage: 2, manaCost: 15 },
+        { name: "Cura", healPercent: 0.3, manaCost: 20 }
+    ],
     items: ["Poción"],
     inventory: [],
     equipment: {
@@ -194,18 +197,9 @@ function performAction(action) {
             log(`Has tomado una postura defensiva y has recuperado ${mpRecovery} PMs.`);
             enemiesAttackWithDefense();
             break;
-        case 'skill':
-            if (player.mp >= player.skillManaCost) {
-                const skillDamage = player.skillDamage;
-                const targetEnemy = enemies[targetedEnemyIndex];
-                targetEnemy.hp = Math.max(targetEnemy.hp - skillDamage, 0);
-                player.mp -= player.skillManaCost;
-                log(`¡Has atacado con ${player.skill} a ${targetEnemy.name} y le has hecho ${skillDamage} de daño!`);
-                enemiesAttack();
-            } else {
-                log("Te faltan PMs para usar esa habilidad.");
-            }
-            break;
+            case 'skill':
+                showSkillOptions();
+                break;
         case 'item':
             if (player.items.length > 0) {
                 const item = player.items.pop();
@@ -225,6 +219,69 @@ function performAction(action) {
 
     if (enemies.every(enemy => enemy.hp <= 0)) {
         defeatEnemies();
+    }
+}
+
+function showSkillOptions() {
+    const skillsHtml = player.skills.map((skill, index) => 
+        `<button onclick="useSkill(${index})">${skill.name} (${skill.manaCost} PM)</button>`
+    ).join('');
+    
+    document.getElementById('actions').innerHTML = `
+        <div>Elige una habilidad:</div>
+        ${skillsHtml}
+        <button onclick="resetActions()">Volver</button>
+    `;
+}
+
+function useSkill(skillIndex) {
+    const skill = player.skills[skillIndex];
+    if (player.mp >= skill.manaCost) {
+        player.mp -= skill.manaCost;
+        
+        switch(skill.name) {
+            case "Multislash":
+                const damage = Math.floor(getTotalAttack() * skill.damage);
+                enemies.forEach(enemy => {
+                    enemy.hp = Math.max(enemy.hp - damage, 0);
+                });
+                log(`¡Has usado Multislash y has hecho ${damage} de daño a todos los enemigos!`);
+                break;
+            case "Estocada múltiple":
+                const hits = Math.floor(Math.random() * (skill.maxHits - skill.minHits + 1)) + skill.minHits;
+                let totalDamage = 0;
+                for (let i = 0; i < hits; i++) {
+                    const hitDamage = Math.floor(getTotalAttack() * skill.damage);
+                    totalDamage += hitDamage;
+                    const randomEnemy = enemies[Math.floor(Math.random() * enemies.length)];
+                    randomEnemy.hp = Math.max(randomEnemy.hp - hitDamage, 0);
+                }
+                log(`¡Has usado Estocada múltiple y has golpeado ${hits} veces, haciendo un total de ${totalDamage} de daño!`);
+                break;
+            case "Estocada":
+                const estocadaDamage = Math.floor(getTotalAttack() * skill.damage);
+                const targetEnemy = enemies[targetedEnemyIndex];
+                targetEnemy.hp = Math.max(targetEnemy.hp - estocadaDamage, 0);
+                log(`¡Has usado Estocada y has hecho ${estocadaDamage} de daño a ${targetEnemy.name}!`);
+                break;
+            case "Cura":
+                const healAmount = Math.floor(player.maxHp * skill.healPercent);
+                player.hp = Math.min(player.hp + healAmount, player.maxHp);
+                log(`¡Has usado Cura y has recuperado ${healAmount} de vida!`);
+                break;
+        }
+        
+        enemiesAttack();
+        updateStats();
+        
+        if (enemies.every(enemy => enemy.hp <= 0)) {
+            defeatEnemies();
+        } else {
+            resetActions();
+        }
+    } else {
+        log("No tienes suficientes PM para usar esta habilidad.");
+        resetActions();
     }
 }
 
@@ -382,7 +439,7 @@ function showLevelUpOptions() {
 function levelUpStat(stat) {
     switch(stat) {
         case 'vida':
-            player.maxHp += 20;
+            player.maxHp += 100;
             player.hp = player.maxHp;
             break;
         case 'pm':
@@ -535,7 +592,7 @@ function resetActions() {
     document.getElementById('actions').innerHTML = `
         <button onclick="performAction('attack')">Ataque</button>
         <button onclick="performAction('defend')">Defensa</button>
-        <button onclick="performAction('skill')">Habilidad</button>
+        <button onclick="performAction('skill')">Habilidades</button>
         <button onclick="performAction('item')">Usar objeto</button>
         <button onclick="showInventory()">Equipo</button>
         <button onclick="showShop()">Tienda</button>
@@ -574,6 +631,8 @@ function getTotalMaxMp() {
 window.onload = initGame;
 window.performAction = performAction;
 window.targetEnemy = targetEnemy;
+window.showSkillOptions = showSkillOptions;
+window.useSkill = useSkill;
 window.showInventory = showInventory;
 window.equipItem = equipItem;
 window.showShop = showShop;
