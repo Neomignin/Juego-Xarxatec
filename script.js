@@ -1,17 +1,17 @@
 const player = {
     name: "Héroe",
     level: 1,
-    hp: 1000,
-    maxHp: 1000,
-    mp: 50,
-    maxMp: 50,
-    attack: 25,
-    defense: 50,
+    hp: 800,
+    maxHp: 800,
+    mp: 60,
+    maxMp: 60,
+    attack: 20,
+    defense: 40,
     skills: [
-        { name: "Multislash", damage: 0.9, target: "all", manaCost: 20 },
-        { name: "Estocada múltiple", damage: 0.5, minHits: 3, maxHits: 5, manaCost: 20 },
-        { name: "Estocada", damage: 2, manaCost: 15 },
-        { name: "Cura", healPercent: 0.3, manaCost: 20 }
+        { name: "Multislash (Hace daño a todos los enemigos)", damage: 0.9, target: "all", manaCost: 20 },
+        { name: "Estocada múltiple (Hace daño de 3 a 5 veces a enemigos al azar)", damage: 0.5, minHits: 3, maxHits: 5, manaCost: 20 },
+        { name: "Estocada (Hace mucho daño al enemigo)", damage: 2, manaCost: 15 },
+        { name: "Cura (Restaura vida)", healPercent: 0.2, manaCost: 25 }
     ],
     items: ["Poción"],
     inventory: [],
@@ -21,7 +21,7 @@ const player = {
         Accesorio: null
     },
     experience: 0,
-    experienceToNextLevel: 100,
+    experienceToNextLevel: 80,
     isDefending: false,
     gold: 0,
     questProgress: 0
@@ -37,45 +37,45 @@ const baseMonsters = [
         name: "Dragón",
         hp: 150,
         maxHp: 150,
-        attack: 80,
-        defense: 8,
-        experienceReward: 80,
+        attack: 75,
+        defense: 10,
+        experienceReward: 70,
         dropChance: 0.7
     },
     {
         name: "Sylph",
-        hp: 100,
-        maxHp: 100,
-        attack: 60,
-        defense: 5,
-        experienceReward: 30,
+        hp: 120,
+        maxHp: 120,
+        attack: 50,
+        defense: 6,
+        experienceReward: 25,
         dropChance: 0.5
     },
     {
         name: "Golem",
-        hp: 200,
-        maxHp: 200,
-        attack: 70,
-        defense: 15,
-        experienceReward: 60,
+        hp: 180,
+        maxHp: 180,
+        attack: 60,
+        defense: 20,
+        experienceReward: 50,
         dropChance: 0.6
     },
     {
         name: "Limo",
-        hp: 50,
-        maxHp: 50,
-        attack: 60,
-        defense: 4,
-        experienceReward: 20,
+        hp: 60,
+        maxHp: 60,
+        attack: 40,
+        defense: 3,
+        experienceReward: 15,
         dropChance: 0.2
     },
     {
         name: "Demonio",
-        hp: 100,
-        maxHp: 100,
-        attack: 80,
-        defense: 2,
-        experienceReward: 70,
+        hp: 90,
+        maxHp: 90,
+        attack: 85,
+        defense: 4,
+        experienceReward: 60,
         dropChance: 0.8
     },
 ];
@@ -83,21 +83,21 @@ const baseMonsters = [
 const bosses = [
     {
         name: "Rey Dragón",
-        hp: 500,
-        maxHp: 500,
-        attack: 150,
-        defense: 20,
-        experienceReward: 300,
+        hp: 400,
+        maxHp: 400,
+        attack: 130,
+        defense: 15,
+        experienceReward: 250,
         dropChance: 1,
         goldReward: 100
     },
     {
         name: "Archimago Oscuro",
-        hp: 400,
-        maxHp: 400,
-        attack: 160,
-        defense: 15,
-        experienceReward: 350,
+        hp: 350,
+        maxHp: 350,
+        attack: 140,
+        defense: 12,
+        experienceReward: 300,
         dropChance: 1,
         goldReward: 150
     }
@@ -240,14 +240,14 @@ function useSkill(skillIndex) {
         player.mp -= skill.manaCost;
         
         switch(skill.name) {
-            case "Multislash":
+            case "Multislash (Hace daño a todos los enemigos)":
                 const damage = Math.floor(getTotalAttack() * skill.damage);
                 enemies.forEach(enemy => {
                     enemy.hp = Math.max(enemy.hp - damage, 0);
                 });
                 log(`¡Has usado Multislash y has hecho ${damage} de daño a todos los enemigos!`);
                 break;
-            case "Estocada múltiple":
+            case "Estocada múltiple (Hace daño de 3 a 5 veces a enemigos al azar)":
                 const hits = Math.floor(Math.random() * (skill.maxHits - skill.minHits + 1)) + skill.minHits;
                 let totalDamage = 0;
                 for (let i = 0; i < hits; i++) {
@@ -258,13 +258,13 @@ function useSkill(skillIndex) {
                 }
                 log(`¡Has usado Estocada múltiple y has golpeado ${hits} veces, haciendo un total de ${totalDamage} de daño!`);
                 break;
-            case "Estocada":
+            case "Estocada (Hace mucho daño al enemigo)":
                 const estocadaDamage = Math.floor(getTotalAttack() * skill.damage);
                 const targetEnemy = enemies[targetedEnemyIndex];
                 targetEnemy.hp = Math.max(targetEnemy.hp - estocadaDamage, 0);
                 log(`¡Has usado Estocada y has hecho ${estocadaDamage} de daño a ${targetEnemy.name}!`);
                 break;
-            case "Cura":
+            case "Cura (Restaura vida)":
                 const healAmount = Math.floor(player.maxHp * skill.healPercent);
                 player.hp = Math.min(player.hp + healAmount, player.maxHp);
                 log(`¡Has usado Cura y has recuperado ${healAmount} de vida!`);
@@ -352,16 +352,14 @@ function defeatEnemies() {
         updateQuestProgress('boss');
     }
     updateQuestProgress('defeat');
-
-    log(`Enemies remaining: ${enemies.filter(e => e.hp > 0).length}`);
     
     if (!allEnemiesDefeated) {
-        log("Targeting next enemy...");
+        log("Apuntando al siguiente enemigo...");
         targetNextEnemy();
     } else {
-        log("All enemies defeated. Spawning new enemies...");
+        log("¡Has derrotado a todos los enemigos! Sigues tu camino...");
         monsterLevel++;
-        log(`Los enemigos se hacen más fuertes... (Level ${monsterLevel})`);
+        log(`Los enemigos se hacen más fuertes... (Nivel ${monsterLevel})`);
         spawnEnemies();
     }
 
@@ -373,9 +371,9 @@ function targetNextEnemy() {
     const aliveEnemyIndex = enemies.findIndex(enemy => enemy.hp > 0);
     if (aliveEnemyIndex !== -1) {
         targetedEnemyIndex = aliveEnemyIndex;
-        log(`Targeted enemy at index ${targetedEnemyIndex}`);
+        log(`Apuntando a ${targetedEnemyIndex}`);
     } else {
-        log("No alive enemies found to target");
+        log("No queda nadie a quien apuntar");
     }
 }
 
@@ -393,7 +391,6 @@ function updateStats() {
         EXP: ${player.experience}/${player.experienceToNextLevel}<br>
         Oro: ${player.gold}<br>
         Objetos: ${player.items.join(', ')}<br>
-        Equipamiento: ${Object.entries(player.equipment).map(([slot, item]) => item ? `${slot}: ${item.name}` : `${slot}: Ninguno`).join(', ')}
     `;
           document.getElementById('enemy-stats').innerHTML = enemies.map((enemy, index) => `
           <div class="enemy-container ${index === targetedEnemyIndex ? 'targeted' : ''} ${enemy.hp <= 0 ? 'defeated' : ''}" 
@@ -466,7 +463,8 @@ function showInventory() {
     const combineHtml = `<button onclick="showCombineOptions()">Combinar equipamiento</button>`;
     
     document.getElementById('actions').innerHTML = `
-        <div>Inventario:</div>
+    <div>Equipamiento: ${Object.entries(player.equipment).map(([slot, item]) => item ? `${slot}: ${item.name}` : `${slot}: Ninguno`).join(', ')} </div> 
+    <div>Inventario:</div>
         ${inventoryHtml}
         ${combineHtml}
         <button onclick="resetActions()">Volver</button>
