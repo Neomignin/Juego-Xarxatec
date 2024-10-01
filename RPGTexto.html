@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <script src="script.js">async</script>
+    <script src="script.js" async></script>
     <title>RPG Texto</title>
 </head>
 <body>
@@ -16,7 +16,20 @@
         <div id="battle-log"></div>
         <div id="player-area">
             <div id="player-stats"></div>
-            <div id="actions"></div>
+            <div id="actions">
+                <div id="battle-actions">
+                    <button onclick="performAction('attack')">Ataque</button>
+                    <button onclick="performAction('defend')">Defensa</button>
+                    <button onclick="performAction('skill')">Habilidades</button>
+                    <button onclick="performAction('item')">Usar objeto</button>
+                </div>
+                <div id="menu-actions">
+                    <button onclick="showInventory()">Equipo</button>
+                    <button onclick="showShop()">Tienda</button>
+                    <button onclick="showQuests()">Misiones</button>
+                </div>
+            </div>
         </div>
+    </div>
 </body>
 </html>
