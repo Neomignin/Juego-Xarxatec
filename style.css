@@ -1,3 +1,9 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
     font-family: Arial, sans-serif;
     display: flex;
@@ -51,7 +57,7 @@ body {
 }
 
 .enemy-container.defeated {
-    background-color: #ffcccc;
+    background-color: #a81818;
     cursor: not-allowed;
 }
 
@@ -65,34 +71,40 @@ body {
 }
 
 #player-stats {
-    background-color: #00000000;
+    background-color: transparent;
     padding: 10px;
     border-radius: 5px;
     margin-bottom: 10px;
 }
 
 #actions {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    display: flex;
+    flex-direction: column;
     gap: 10px;
 }
 
-button {
+#battle-actions, #menu-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+#actions button {
     padding: 10px;
     font-size: 16px;
     cursor: pointer;
-    background-color: #4CAF50;
-    color: white;
     border: none;
     border-radius: 5px;
-    transition: background-color 0.3s;
+    color: rgb(255, 255, 255);
+    background-color: #000000;
 }
 
-button:hover {
-    background-color: #45a049;
+#actions button:hover {
+    opacity: 0.8;
 }
 
-button:disabled {
+#actions button:disabled {
     background-color: #cccccc;
+    color: #666666;
     cursor: not-allowed;
 }
