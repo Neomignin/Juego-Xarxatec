@@ -21,7 +21,7 @@
                     <button onclick="performAction('attack')">Ataque</button>
                     <button onclick="performAction('defend')">Defensa</button>
                     <button onclick="performAction('skill')">Habilidades</button>
-                    <button onclick="performAction('item')">Usar objeto</button>
+                    <button onclick="showItemSelection()">Usar objeto</button>
                 </div>
                 <div id="menu-actions">
                     <button onclick="showInventory()">Equipo</button>
@@ -29,6 +29,12 @@
                     <button onclick="showQuests()">Misiones</button>
                 </div>
             </div>
+        </div>
+        <div id="item-selection" class="modal">
+            <div class="modal-content">
+                <h2>Selecciona un objeto para usar</h2>
+                <div id="item-list"></div>
+                <button onclick="closeItemSelection()" class="game-button">Volver</button>
         </div>
     </div>
 </body>
