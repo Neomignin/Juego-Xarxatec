@@ -85,7 +85,7 @@ const bosses = [
         name: "Rey Dragón",
         hp: 400,
         maxHp: 400,
-        attack: 130,
+        attack: 100,
         defense: 15,
         experienceReward: 250,
         dropChance: 1,
@@ -95,7 +95,7 @@ const bosses = [
         name: "Archimago Oscuro",
         hp: 350,
         maxHp: 350,
-        attack: 140,
+        attack: 110,
         defense: 12,
         experienceReward: 300,
         dropChance: 1,
@@ -130,8 +130,36 @@ const quests = [
     { description: "Alcanza el nivel 5", reward: 300, goalProgress: 0, goalTarget: 5 }
 ];
 
+const randomEvents = [
+    {
+        name: "Goblin Coin Flip",
+        description: "Has encontrado a un Goblin jugando con una moneda, te reta a acertar cara o cruz.",
+        action: goblinCoinFlip
+    },
+    {
+        name: "Treasure Chest",
+        description: "Encuentras un cofre del tesoro en el camino.",
+        action: treasureChest
+    },
+    {
+        name: "Healing Spring",
+        description: "Descubres un manantial con propiedades curativas.",
+        action: healingSpring
+    },
+    {
+        name: "Wandering Merchant",
+        description: "Te cruzas con un mercader ambulante que ofrece un objeto a precio reducido.",
+        action: wanderingMerchant
+    },
+    {
+        name: "Mysterious Shrine",
+        description: "Encuentras un antiguo santuario. Puedes hacer una ofrenda por una bendición aleatoria.",
+        action: mysteriousShrine
+    }
+];
+
 function spawnEnemies() {
-    if (monsterLevel % 5 === 0 && !isBossBattle) {
+    if (monsterLevel % 10 === 0 && !isBossBattle) {
         spawnBoss();
     } else {
         const enemyCount = Math.floor(Math.random() * 2) + 1;
@@ -143,7 +171,7 @@ function spawnEnemies() {
             enemy.maxHp = enemy.hp;
             enemy.attack = Math.floor(enemy.attack * (1 + 0.05 * monsterLevel));
             enemy.defense = Math.floor(enemy.defense * (1 + 0.05 * monsterLevel));
-            enemy.experienceReward = Math.floor(enemy.experienceReward * (1 + 0.1 * monsterLevel));
+            enemy.experienceReward = Math.floor(enemy.experienceReward * (1 + 0.2 * monsterLevel));
             enemy.goldReward = Math.floor(Math.random() * 10) + 5;
             enemies.push(enemy);
         }
@@ -382,16 +410,25 @@ function defeatEnemies() {
         updateQuestProgress('boss');
     }
     updateQuestProgress('defeat');
-    
-    if (!allEnemiesDefeated) {
-        log("Apuntando al siguiente enemigo...");
-        targetNextEnemy();
-    } else {
+
+    if (allEnemiesDefeated) {
         log("¡Has derrotado a todos los enemigos! Sigues tu camino...");
         monsterLevel++;
         log(`Los enemigos se hacen más fuertes... (Nivel ${monsterLevel})`);
-        spawnEnemies();
-    }
+        
+        triggerRandomEvent();
+
+    } else {
+            if (!allEnemiesDefeated) {
+            log("Apuntando al siguiente enemigo...");
+            targetNextEnemy();
+            } else {
+            log("¡Has derrotado a todos los enemigos! Sigues tu camino...");
+            monsterLevel++;
+            log(`Los enemigos se hacen más fuertes... (Nivel ${monsterLevel})`);
+            spawnEnemies();
+        }
+    }    
 
     checkLevelUp();
     updateStats();
@@ -438,6 +475,109 @@ function getRandomEquipment(maxTier) {
     return availableEquipment[Math.floor(Math.random() * availableEquipment.length)];
 }
 
+function triggerRandomEvent() {
+    if (Math.random() < 0.5) {
+        const event = randomEvents[Math.floor(Math.random() * randomEvents.length)];
+        log(`¡Evento aleatorio! ${event.description}`);
+        event.action();
+    } else {
+        continueJourney();
+    }
+}
+
+function goblinCoinFlip() {
+    const playerChoice = confirm("¿Quieres jugar? Elige: OK para cara, Cancelar para cruz.");
+    const goblinFlip = Math.random() < 0.5;
+    
+    if ((playerChoice && goblinFlip) || (!playerChoice && !goblinFlip)) {
+        player.gold += 20;
+        log("¡Has ganado! Oro +20");
+    } else {
+        player.gold = Math.max(0, player.gold - 10);
+        player.hp = Math.max(0, player.hp - 50);
+        log("Has perdido. Oro -10, Vida -50");
+    }
+    updateStats();
+    continueJourney();
+}
+
+function treasureChest() {
+    const gold = Math.floor(Math.random() * 50) + 10;
+    player.gold += gold;
+    log(`¡Has encontrado ${gold} de oro en el cofre!`);
+    updateStats();
+    continueJourney();
+}
+
+function healingSpring() {
+    const healing = Math.floor(player.maxHp * 0.3);
+    player.hp = Math.min(player.maxHp, player.hp + healing);
+    log(`El manantial cura ${healing} puntos de vida.`);
+    updateStats();
+    continueJourney();
+}
+
+function wanderingMerchant() {
+    const itemIndex = Math.floor(Math.random() * shopItems.length);
+    const item = shopItems[itemIndex];
+    const discountedCost = Math.floor(item.cost * 0.7);
+    
+    const purchase = confirm(`El mercader ofrece ${item.name} por ${discountedCost} oro. ¿Quieres comprarlo?`);
+    
+    if (purchase) {
+        if (player.gold >= discountedCost) {
+            player.gold -= discountedCost;
+            player.items.push(item.name);
+            log(`Has comprado ${item.name} por ${discountedCost} oro.`);
+        } else {
+            log("No tienes suficiente oro para comprar este objeto.");
+        }
+    } else {
+        log("Decides no comprar nada al mercader.");
+    }
+    
+    updateStats();
+    continueJourney();
+}
+
+function mysteriousShrine() {
+    const offeringCost = 10;
+    const makeOffering = confirm(`¿Quieres hacer una ofrenda de ${offeringCost} oro al santuario?`);
+    
+    if (makeOffering && player.gold >= offeringCost) {
+        player.gold -= offeringCost;
+        const blessing = Math.random();
+        
+        if (blessing < 0.3) {
+            player.attack += 5;
+            log("El santuario aumenta tu ataque en 5 puntos.");
+        } else if (blessing < 0.6) {
+            player.defense += 5;
+            log("El santuario aumenta tu defensa en 5 puntos.");
+        } else if (blessing < 0.9) {
+            const healing = Math.floor(player.maxHp * 0.5);
+            player.hp = Math.min(player.maxHp, player.hp + healing);
+            log(`El santuario te cura ${healing} puntos de vida.`);
+        } else {
+            player.gold += offeringCost * 3;
+            log("El santuario triplica tu ofrenda de oro.");
+        }
+    } else if (makeOffering) {
+        log("No tienes suficiente oro para hacer una ofrenda.");
+    } else {
+        log("Decides no hacer una ofrenda al santuario.");
+    }
+    
+    updateStats();
+    continueJourney();
+}
+
+function continueJourney() {
+    setTimeout(() => {
+        spawnEnemies();
+    }, 1500);
+}
+
 function checkLevelUp() {
     if (player.experience >= player.experienceToNextLevel) {
         player.level++;
@@ -466,18 +606,18 @@ function showLevelUpOptions() {
 function levelUpStat(stat) {
     switch(stat) {
         case 'vida':
-            player.maxHp += 100;
+            player.maxHp += 200;
             player.hp = player.maxHp;
             break;
         case 'pm':
-            player.maxMp += 10;
+            player.maxMp += 20;
             player.mp = player.maxMp;
             break;
         case 'ataque':
-            player.attack += 5;
+            player.attack += 10;
             break;
         case 'defensa':
-            player.defense += 3;
+            player.defense += 5;
             break;
     }
     log(`¡Tu ${stat.toUpperCase()} ha aumentado!`);
