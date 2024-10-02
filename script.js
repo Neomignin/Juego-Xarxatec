@@ -120,12 +120,12 @@ const equipment = [
 
 const shopItems = [
     { name: "Poción", cost: 20, effect: () => { player.hp = Math.min(player.hp + 300, player.maxHp); } },
-    { name: "Elixir", cost: 50, effect: () => { player.mp = Math.min(player.mp + 20, player.maxMp); } },
-    { name: "Bomba", cost: 30, effect: () => { enemies.forEach(enemy => enemy.hp -= 20); } }
+    { name: "Elixir", cost: 50, effect: () => { player.mp = Math.min(player.mp + 30, player.maxMp); } },
+    { name: "Bomba", cost: 40, effect: () => { enemies.forEach(enemy => enemy.hp -= 50); } }
 ];
 
 const quests = [
-    { description: "Derrota 5 enemigos", reward: 100, goalProgress: 0, goalTarget: 5 },
+    { description: "Derrota a 5 enemigos", reward: 100, goalProgress: 0, goalTarget: 5 },
     { description: "Vence a un jefe", reward: 200, goalProgress: 0, goalTarget: 1 },
     { description: "Alcanza el nivel 5", reward: 300, goalProgress: 0, goalTarget: 5 }
 ];
@@ -191,27 +191,20 @@ function performAction(action) {
             log(`¡Has atacado a ${targetEnemy.name}, y le has hecho ${damage} de daño!`);
             enemiesAttack();
             break;
+
         case 'defend':
             const mpRecovery = 10;
             player.mp = Math.min(player.mp + mpRecovery, getTotalMaxMp());
             log(`Has tomado una postura defensiva y has recuperado ${mpRecovery} PMs.`);
             enemiesAttackWithDefense();
             break;
-            case 'skill':
-                showSkillOptions();
-                break;
+
+        case 'skill':
+            showSkillOptions();
+            break;
+
         case 'item':
-            if (player.items.length > 0) {
-                const item = player.items.pop();
-                const shopItem = shopItems.find(shopItem => shopItem.name === item);
-                if (shopItem) {
-                    shopItem.effect();
-                    log(`Has usado ${item}.`);
-                }
-                enemiesAttack();
-            } else {
-                log("No te quedan objetos.");
-            }
+            showItemSelection();
             break;
     }
 
@@ -283,6 +276,43 @@ function useSkill(skillIndex) {
         log("No tienes suficientes PM para usar esta habilidad.");
         resetActions();
     }
+}
+
+function showItemSelection() {
+    const itemSelectionModal = document.getElementById('item-selection');
+    const itemList = document.getElementById('item-list');
+    itemList.innerHTML = '';
+
+    player.items.forEach((item, index) => {
+        const itemButton = document.createElement('button');
+        itemButton.textContent = item;
+        itemButton.onclick = () => useItem(index);
+        itemList.appendChild(itemButton);
+    });
+
+    if (player.items.length === 0) {
+        itemList.innerHTML = '<p>No tienes objetos para usar.</p>';
+    }
+
+    itemSelectionModal.style.display = 'block';
+}
+
+function closeItemSelection() {
+    const itemSelectionModal = document.getElementById('item-selection');
+    itemSelectionModal.style.display = 'none';
+}
+
+function useItem(index) {
+    const item = player.items[index];
+    const shopItem = shopItems.find(shopItem => shopItem.name === item);
+    if (shopItem) {
+        shopItem.effect();
+        log(`Has usado ${item}.`);
+        player.items.splice(index, 1);
+        enemiesAttack();
+        updateStats();
+    }
+    closeItemSelection();
 }
 
 function enemiesAttack() {
